@@ -79,9 +79,9 @@ function getRandom() {
 
 function updatePlayButton() {
   if (addedTime === 0) {
-    playBtn.textContent = "Play (5s)";
+    playBtn.textContent = `Play (${BASE_CLIP}s)`;
   } else {
-    playBtn.textContent = `Play (5+${addedTime}s)`;
+    playBtn.textContent = `Play (${BASE_CLIP}+${addedTime}s)`;
   }
 }
 
@@ -103,12 +103,19 @@ playBtn.addEventListener("click", () => {
 
   audio.pause();
 
-  // New episode = reset add time
-  resetAddState();
+  // Only reset add state if it's a new episode
+  if (!currentFile) {
+    resetAddState();
+  }
 
   const rand = getRandom();
   const fileIndex = Math.floor(rand() * audioFiles.length);
-  currentFile = audioFiles[fileIndex];
+
+  // Only pick new file if currentFile is null (first play)
+  if (!currentFile) {
+    currentFile = audioFiles[fileIndex];
+    resetAddState(); // new episode
+  }
 
   audio.src = `opus/${currentFile}`;
 
@@ -119,12 +126,15 @@ playBtn.addEventListener("click", () => {
       audio.duration - END_OFFSET - BASE_CLIP
     );
 
-    currentStartTime = minStart + rand() * (maxStart - minStart);
+    if (currentStartTime === 0) {
+      currentStartTime = minStart + rand() * (maxStart - minStart);
+    }
 
     audio.currentTime = currentStartTime;
     audio.play();
 
-    setTimeout(() => audio.pause(), BASE_CLIP * 1000);
+    const totalDuration = BASE_CLIP + addedTime;
+    setTimeout(() => audio.pause(), totalDuration * 1000);
   };
 });
 
@@ -142,14 +152,6 @@ addBtn.addEventListener("click", () => {
   }
 
   updatePlayButton();
-
-  // Replay with extended duration
-  audio.currentTime = currentStartTime;
-  audio.play();
-
-  const totalDuration = BASE_CLIP + addedTime;
-
-  setTimeout(() => audio.pause(), totalDuration * 1000);
 });
 
 /* ---------- Reveal ---------- */
