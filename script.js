@@ -10,7 +10,8 @@ const button = document.getElementById("play");
 // Generate filenames like 001.opus, 002.opus, ...
 function randomAudioFile() {
   const n = Math.floor(Math.random() * AUDIO_COUNT) + 1;
-  return `opus/${String(n).padStart(3, "0")}.opus`;
+  return `opus/s01 - e05 Bart the General.opus`;
+  //return `opus/${String(n).padStart(3, "0")}.opus`;
 }
 
 button.addEventListener("click", () => {
