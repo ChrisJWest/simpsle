@@ -1,8 +1,12 @@
-const CLIP_LENGTH = 5;
+const BASE_CLIP = 5;
+const ADD_INCREMENT = 5;
+const MAX_ADDS = 5;
 const INTRO_OFFSET = 85;
+const END_OFFSET = 90;
 
 const audio = document.getElementById("audio");
 const playBtn = document.getElementById("play");
+const addBtn = document.getElementById("add-time");
 const revealBtn = document.getElementById("reveal");
 
 const thumbnail = document.getElementById("thumbnail");
@@ -16,7 +20,10 @@ let metadata = {};
 let currentFile = null;
 let currentStartTime = 0;
 
-let mode = "daily"; // "daily" | "random"
+let addedTime = 0;
+let addCount = 0;
+
+let mode = "daily";
 
 const dailyBtn = document.getElementById("daily");
 const randomBtn = document.getElementById("random");
@@ -42,7 +49,7 @@ Promise.all([
   metadata = data;
 });
 
-/* ---------------- Seeded randomness ---------------- */
+/* ---------- Seeded randomness ---------- */
 
 function mulberry32(seed) {
   return function () {
@@ -54,11 +61,11 @@ function mulberry32(seed) {
 }
 
 function dailySeed() {
-  const today = new Date();
+  const d = new Date();
   return parseInt(
-    today.getFullYear().toString() +
-    String(today.getMonth() + 1).padStart(2, "0") +
-    String(today.getDate()).padStart(2, "0")
+    d.getFullYear().toString() +
+    String(d.getMonth() + 1).padStart(2, "0") +
+    String(d.getDate()).padStart(2, "0")
   );
 }
 
@@ -68,41 +75,84 @@ function getRandom() {
     : Math.random;
 }
 
-/* ---------------- Play logic ---------------- */
+/* ---------- Helpers ---------- */
+
+function updatePlayButton() {
+  if (addedTime === 0) {
+    playBtn.textContent = "Play (5s)";
+  } else {
+    playBtn.textContent = `Play (5+${addedTime}s)`;
+  }
+}
+
+function resetAddState() {
+  addedTime = 0;
+  addCount = 0;
+  addBtn.disabled = false;
+  updatePlayButton();
+}
+
+/* ---------- Play ---------- */
 
 playBtn.addEventListener("click", () => {
   if (!audioFiles.length) return;
 
-  // Reset UI
   revealBtn.disabled = false;
   metadataBox.hidden = true;
   thumbEl.style.display = "none";
 
   audio.pause();
-  audio.currentTime = 0;
+
+  // New episode = reset add time
+  resetAddState();
 
   const rand = getRandom();
-
-  // Pick episode deterministically or randomly
   const fileIndex = Math.floor(rand() * audioFiles.length);
   currentFile = audioFiles[fileIndex];
 
   audio.src = `opus/${currentFile}`;
 
   audio.onloadedmetadata = () => {
-    const minStart = Math.min(INTRO_OFFSET, audio.duration - CLIP_LENGTH);
-    const maxStart = Math.max(minStart, audio.duration - CLIP_LENGTH);
+    const minStart = INTRO_OFFSET;
+    const maxStart = Math.max(
+      minStart,
+      audio.duration - END_OFFSET - BASE_CLIP
+    );
 
     currentStartTime = minStart + rand() * (maxStart - minStart);
 
     audio.currentTime = currentStartTime;
     audio.play();
 
-    setTimeout(() => audio.pause(), CLIP_LENGTH * 1000);
+    setTimeout(() => audio.pause(), BASE_CLIP * 1000);
   };
 });
 
-/* ---------------- Reveal metadata ---------------- */
+/* ---------- Add 5 seconds ---------- */
+
+addBtn.addEventListener("click", () => {
+  if (!currentFile) return;
+  if (addCount >= MAX_ADDS) return;
+
+  addCount++;
+  addedTime += ADD_INCREMENT;
+
+  if (addCount >= MAX_ADDS) {
+    addBtn.disabled = true;
+  }
+
+  updatePlayButton();
+
+  // Replay with extended duration
+  audio.currentTime = currentStartTime;
+  audio.play();
+
+  const totalDuration = BASE_CLIP + addedTime;
+
+  setTimeout(() => audio.pause(), totalDuration * 1000);
+});
+
+/* ---------- Reveal ---------- */
 
 revealBtn.addEventListener("click", () => {
   if (!currentFile) return;
@@ -123,7 +173,6 @@ revealBtn.addEventListener("click", () => {
 
   descEl.textContent = result["Episode Description"] || "";
 
-  // Load thumbnail
   if (result["Thumbnail"]) {
     thumbEl.src = result["Thumbnail"];
     thumbEl.style.display = "block";
