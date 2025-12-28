@@ -26,6 +26,12 @@ body {
   margin-bottom: 1rem;
 }
 
+#episode-thumbnail {
+  margin-top: 1rem;
+  max-width: 100%;
+  border-radius: 8px;
+}
+
 .buttons {
   display: flex;
   gap: 1rem;
