@@ -9,10 +9,13 @@ const thumbnail = document.getElementById("thumbnail");
 const titleEl = document.getElementById("title");
 const descEl = document.getElementById("description");
 const metadataBox = document.getElementById("metadata");
+const thumbEl = document.getElementById("episode-thumbnail");
 
 let audioFiles = [];
 let metadata = {};
 let currentFile = null;
+let currentStartTime = 0;
+
 let mode = "daily"; // "daily" | "random"
 
 const dailyBtn = document.getElementById("daily");
@@ -30,7 +33,6 @@ randomBtn.onclick = () => {
   dailyBtn.classList.remove("active");
 };
 
-
 // Load manifests
 Promise.all([
   fetch("audios.json").then(r => r.json()),
@@ -40,10 +42,7 @@ Promise.all([
   metadata = data;
 });
 
-// Pick random audio filename
-function randomFile() {
-  return audioFiles[Math.floor(Math.random() * audioFiles.length)];
-}
+/* ---------------- Seeded randomness ---------------- */
 
 function mulberry32(seed) {
   return function () {
@@ -63,26 +62,13 @@ function dailySeed() {
   );
 }
 
-function pickEpisodeAndTime(duration) {
-  let rand;
-
-  if (mode === "daily") {
-    rand = mulberry32(dailySeed());
-  } else {
-    rand = Math.random;
-  }
-
-  const fileIndex = Math.floor(rand() * audioFiles.length);
-  const file = audioFiles[fileIndex];
-
-  const minStart = Math.min(INTRO_OFFSET, duration - CLIP_LENGTH);
-  const maxStart = Math.max(minStart, duration - CLIP_LENGTH);
-
-  const startTime = minStart + rand() * (maxStart - minStart);
-
-  return { file, startTime };
+function getRandom() {
+  return mode === "daily"
+    ? mulberry32(dailySeed())
+    : Math.random;
 }
 
+/* ---------------- Play logic ---------------- */
 
 playBtn.addEventListener("click", () => {
   if (!audioFiles.length) return;
@@ -90,33 +76,33 @@ playBtn.addEventListener("click", () => {
   // Reset UI
   revealBtn.disabled = false;
   metadataBox.hidden = true;
+  thumbEl.style.display = "none";
 
-  currentFile = randomFile();
+  audio.pause();
+  audio.currentTime = 0;
+
+  const rand = getRandom();
+
+  // Pick episode deterministically or randomly
+  const fileIndex = Math.floor(rand() * audioFiles.length);
+  currentFile = audioFiles[fileIndex];
+
   audio.src = `opus/${currentFile}`;
-
-  // Show thumbnail immediately (if available)
-  const info = metadata[currentFile];
-  if (info?.thumbnail) {
-    thumbnail.src = info.thumbnail;
-    thumbnail.hidden = false;
-  } else {
-    thumbnail.hidden = true;
-  }
 
   audio.onloadedmetadata = () => {
     const minStart = Math.min(INTRO_OFFSET, audio.duration - CLIP_LENGTH);
     const maxStart = Math.max(minStart, audio.duration - CLIP_LENGTH);
 
-    const startTime = minStart + Math.random() * (maxStart - minStart);
+    currentStartTime = minStart + rand() * (maxStart - minStart);
 
-    audio.currentTime = startTime;
+    audio.currentTime = currentStartTime;
     audio.play();
 
     setTimeout(() => audio.pause(), CLIP_LENGTH * 1000);
   };
 });
 
-const thumbEl = document.getElementById("episode-thumbnail");
+/* ---------------- Reveal metadata ---------------- */
 
 revealBtn.addEventListener("click", () => {
   if (!currentFile) return;
@@ -132,10 +118,12 @@ revealBtn.addEventListener("click", () => {
   );
   if (!result) return;
 
-  titleEl.textContent = "S" + seasonNum + "E" + epNum + ": " + result["Episode Title"] || "";
+  titleEl.textContent =
+    `S${seasonNum}E${epNum}: ${result["Episode Title"]}` || "";
+
   descEl.textContent = result["Episode Description"] || "";
 
-  // ✅ Load thumbnail image
+  // Load thumbnail
   if (result["Thumbnail"]) {
     thumbEl.src = result["Thumbnail"];
     thumbEl.style.display = "block";
