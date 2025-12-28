@@ -13,7 +13,7 @@ fetch("audios.json")
 
 function randomAudioFile() {
   const file = audioFiles[Math.floor(Math.random() * audioFiles.length)];
-  return `audios/${file}`;
+  return `opus/${file}`;
 }
 
 button.addEventListener("click", () => {
