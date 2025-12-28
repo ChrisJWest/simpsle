@@ -71,7 +71,7 @@ revealBtn.addEventListener("click", () => {
   //const
 
   titleEl.textContent = result["Episode Title"] || "";
-  descEl.textContent = result"Episode Description"] || "";
+  descEl.textContent = result["Episode Description"] || "";
 
   metadataBox.hidden = false;
 });
