@@ -71,7 +71,7 @@ revealBtn.addEventListener("click", () => {
   );
   if (!result) return;
 
-  titleEl.textContent = "S" + seasonNum + "E" + epNum + result["Episode Title"] || "";
+  titleEl.textContent = "S" + seasonNum + "E" + epNum + ": " + result["Episode Title"] || "";
   descEl.textContent = result["Episode Description"] || "";
 
   // ✅ Load thumbnail image
