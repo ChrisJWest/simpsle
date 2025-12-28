@@ -26,6 +26,33 @@ body {
   margin-bottom: 1rem;
 }
 
+#mode-toggle {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 1rem;
+}
+
+#mode-toggle button {
+  padding: 0.4rem 1rem;
+  border: none;
+  cursor: pointer;
+  background: rgba(255,255,255,0.2);
+  color: white;
+}
+
+#mode-toggle button.active {
+  background: rgba(255,255,255,0.6);
+  color: black;
+}
+
+#mode-toggle button:first-child {
+  border-radius: 6px 0 0 6px;
+}
+
+#mode-toggle button:last-child {
+  border-radius: 0 6px 6px 0;
+}
+
 #site-title {
   display: block;
   max-width: 100%;
