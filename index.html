@@ -2,30 +2,28 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Simple</title>
+  <title>Simpsle</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
-    body {
-      font-family: system-ui, sans-serif;
-      display: flex;
-      height: 100vh;
-      align-items: center;
-      justify-content: center;
-      background: #111;
-      color: #eee;
-    }
-    button {
-      font-size: 1.2rem;
-      padding: 1rem 2rem;
-      cursor: pointer;
-    }
-  </style>
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 
-  <button id="play">▶ Play random 5s clip</button>
-  <audio id="audio"></audio>
+  <div id="container">
+    <img id="thumbnail" hidden />
 
+    <div class="buttons">
+      <button id="play">▶ Play</button>
+      <button id="reveal" disabled>Reveal</button>
+    </div>
+
+    <div id="metadata" hidden>
+      <h2 id="title"></h2>
+      <p id="description"></p>
+    </div>
+  </div>
+
+  <audio id="audio"></audio>
   <script src="script.js"></script>
 </body>
 </html>
+
