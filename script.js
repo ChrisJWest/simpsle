@@ -58,22 +58,25 @@ playBtn.addEventListener("click", () => {
 revealBtn.addEventListener("click", () => {
   if (!currentFile) return;
 
-  const seasonNum = currentFile.substring(1, 3);
-  const epNum = currentFile.substring(7, 9);
+  // Example filename assumption:
+  // S01E02_something.opus
+  const seasonNum = currentFile.substring(1, 3); // "01"
+  const epNum = String(parseInt(currentFile.substring(7, 9))); // "2"
 
-  const info = metadata[seasonNum];
-  const epFiltered = parseInt(epNum).toString();
-  const result = Object.values(info.info)
-  .find(item => item["Episode Number"] === epFiltered);
+  const seasonData = metadata[seasonNum];
+  if (!seasonData) return;
 
-  
-  if (!info) return;
-  //const
+  const result = seasonData.find(
+    ep => ep["Episode Number"] === epNum
+  );
+
+  if (!result) return;
 
   titleEl.textContent = result["Episode Title"] || "";
   descEl.textContent = result["Episode Description"] || "";
 
   metadataBox.hidden = false;
 });
+
 
 
