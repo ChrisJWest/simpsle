@@ -55,13 +55,13 @@ playBtn.addEventListener("click", () => {
   };
 });
 
+const thumbEl = document.getElementById("episode-thumbnail");
+
 revealBtn.addEventListener("click", () => {
   if (!currentFile) return;
 
-  // Example filename assumption:
-  // S01E02_something.opus
-  const seasonNum = currentFile.substring(1, 3); // "01"
-  const epNum = String(parseInt(currentFile.substring(7, 9))); // "2"
+  const seasonNum = currentFile.substring(1, 3);
+  const epNum = String(parseInt(currentFile.substring(7, 9)));
 
   const seasonData = metadata[seasonNum];
   if (!seasonData) return;
@@ -69,14 +69,18 @@ revealBtn.addEventListener("click", () => {
   const result = seasonData.find(
     ep => ep["Episode Number"] === epNum
   );
-
   if (!result) return;
 
   titleEl.textContent = "S" + seasonNum + "E" + epNum + result["Episode Title"] || "";
   descEl.textContent = result["Episode Description"] || "";
 
+  // ✅ Load thumbnail image
+  if (result["Thumbnail"]) {
+    thumbEl.src = result["Thumbnail"];
+    thumbEl.style.display = "block";
+  } else {
+    thumbEl.style.display = "none";
+  }
+
   metadataBox.hidden = false;
 });
-
-
-
