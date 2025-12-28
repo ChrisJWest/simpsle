@@ -72,7 +72,7 @@ revealBtn.addEventListener("click", () => {
 
   if (!result) return;
 
-  titleEl.textContent = result["Episode Title"] || "";
+  titleEl.textContent = "S" + seasonNum + "E" + epNum + result["Episode Title"] || "";
   descEl.textContent = result["Episode Description"] || "";
 
   metadataBox.hidden = false;
